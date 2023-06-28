@@ -34,7 +34,6 @@ namespace ariel {
         private:
             MagicalContainer &container;
             Node *current;
-            int index;
 
         public:
 
@@ -49,7 +48,7 @@ namespace ariel {
 
             AscendingIterator end();
 
-            AscendingIterator(MagicalContainer &container, Node *current , int index);
+            AscendingIterator(MagicalContainer &container, Node *current );
 
             AscendingIterator(const AscendingIterator &other);
 
@@ -62,14 +61,14 @@ namespace ariel {
             bool operator==(const AscendingIterator &other) const;
 
             bool operator!=(const AscendingIterator &other) const;
+
+
         };
 
         class SideCrossIterator {
         private:
             MagicalContainer &container;
             Node *current , *left , *right;
-            int index;
-
         public:
             SideCrossIterator begin();
 
@@ -77,7 +76,7 @@ namespace ariel {
 
             explicit SideCrossIterator(MagicalContainer &container);
 
-            SideCrossIterator(MagicalContainer &container, Node *current , int index);
+            SideCrossIterator(MagicalContainer &container, Node *current);
 
             SideCrossIterator(const SideCrossIterator &other);
 
@@ -101,7 +100,6 @@ namespace ariel {
         private:
             MagicalContainer &container;
             Node *current;
-            int index;
         public:
             explicit PrimeIterator(MagicalContainer &container);
 
@@ -109,7 +107,7 @@ namespace ariel {
 
             PrimeIterator end();
 
-            PrimeIterator(MagicalContainer &container, Node *current , int index);
+            PrimeIterator(MagicalContainer &container, Node *current);
 
             PrimeIterator(const PrimeIterator &other);
 

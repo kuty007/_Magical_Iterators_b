@@ -12,6 +12,8 @@ struct Node {
     Node *next;
     Node *next_prime;
     Node *prev_prime;
+    int ascIndex;
+    int crossIndex;
 };
 
 class DoublyLinkedList {
@@ -22,13 +24,11 @@ private:
     Node *tail_prime;
     int size;
     int prime_size{};
-
-
-    bool isPrime(int num);
+    static bool isPrime(int num);
 
 public:
-    DoublyLinkedList() : head(nullptr), tail(nullptr), head_prime(nullptr), tail_prime(nullptr), size(0) , prime_size(0)
-                         {}
+    DoublyLinkedList() : head(nullptr), tail(nullptr), head_prime(nullptr), tail_prime(nullptr), size(0),
+                         prime_size(0) {}
 
     ~DoublyLinkedList();
 
@@ -37,7 +37,8 @@ public:
     void removeElement(int element);
 
     int getSize();
-    int getPrimeSize();
+
+
 
 
     Node *getHead();
@@ -46,9 +47,15 @@ public:
 
     Node *getHeadPrime();
 
-    void addElement2(int data);
 
-    void removeElement2(int element);
+
+
+
+    void addPrimeElement(Node *element);
+
+    void updateAscIndex();
+
+    void updateCrossIndex();
 };
 
 

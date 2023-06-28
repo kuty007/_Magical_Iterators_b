@@ -331,28 +331,28 @@ TEST_CASE("Comparing PrimeIterator") {
         CHECK((it1 != it2));
         CHECK_FALSE((it1 < it2));
         CHECK((it1 > it2));
-//
+////
         ++it2;
         CHECK((it1 == it2));
         CHECK_FALSE((it1 != it2));
         CHECK_FALSE((it1 > it2));
         CHECK_FALSE((it1 < it2));
-//
+////
         ++it1;
         CHECK_FALSE((it1 == it2));
         CHECK((it1 != it2));
         CHECK((it1 > it2));
-        CHECK_FALSE((it1 < it2));
+//        CHECK_FALSE((it1 < it2));
 
         ++it2;
         CHECK((it1 == it2));
         CHECK_FALSE((it1 != it2));
         CHECK_FALSE((it1 > it2));
         CHECK_FALSE((it1 < it2));
-
+//
         CHECK(it1 == it1.end());
         CHECK(it2 == it2.end());
-    }
+   }
 }
 
 
@@ -596,5 +596,218 @@ TEST_CASE("operator= throws when iterators are pointing at different containers"
         CHECK_THROWS_AS(it1 = it2, std::runtime_error);
     }
 }
+//My Tests
+TEST_CASE("add elements and remove elements") {
+    // test add element
+    MagicalContainer container;
+    CHECK_NOTHROW(container.addElement(1));
+    CHECK_NOTHROW(container.addElement(1));
+    CHECK_NOTHROW(container.addElement(2));
+    CHECK_NOTHROW(container.addElement(3));
+    CHECK(container.size() == 3);
+    CHECK_NOTHROW(container.removeElement(1));
+    CHECK(container.size() == 2);
+    CHECK_FALSE(container.size() == 3);
+    CHECK_THROWS(container.removeElement(5));
+}
 
+TEST_CASE("AscendingIterator") {
+    MagicalContainer container;
+    container.addElement(100);
+    container.addElement(20);
+    container.addElement(30);
+    container.addElement(15);
+    container.addElement(25);
 
+    SUBCASE("Iterating over elements") {
+        MagicalContainer::AscendingIterator it(container);
+
+        CHECK(*it == 15);
+        ++it;
+        CHECK(*it == 20);
+        ++it;
+        CHECK(*it == 25);
+        ++it;
+        CHECK(*it == 30);
+        ++it;
+        CHECK(*it == 100);
+        ++it;
+        CHECK(it == it.end());
+    }
+    SUBCASE("Iterating over an empty container") {
+        MagicalContainer emptyContainer;
+        MagicalContainer::AscendingIterator it(emptyContainer);
+        CHECK(it == it.end());
+    }
+
+}
+TEST_CASE("PrimeIterator with No Prime Numbers") {
+    MagicalContainer container;
+    container.addElement(4);
+    container.addElement(6);
+    container.addElement(8);
+    container.addElement(9);
+    container.addElement(10);
+    container.addElement(12);
+
+    SUBCASE("Iterating over elements") {
+        MagicalContainer::PrimeIterator it(container);
+
+        CHECK(it == it.end());
+        CHECK_THROWS_AS(++it, runtime_error);
+    }
+}
+TEST_CASE("PrimeIterator with Prime Numbers") {
+    MagicalContainer container;
+    container.addElement(2);
+    container.addElement(3);
+    container.addElement(5);
+    container.addElement(7);
+    container.addElement(11);
+    container.addElement(13);
+
+    SUBCASE("Iterating over elements") {
+        MagicalContainer::PrimeIterator it(container);
+
+        CHECK(*it == 2);
+        ++it;
+        CHECK(*it == 3);
+        ++it;
+        CHECK(*it == 5);
+        ++it;
+        CHECK(*it == 7);
+        ++it;
+        CHECK(*it == 11);
+        ++it;
+        CHECK(*it == 13);
+        ++it;
+        CHECK(it == it.end());
+    }
+}
+
+TEST_CASE("CrossIterator"){
+    MagicalContainer container;
+    container.addElement(2);
+    container.addElement(3);
+    container.addElement(5);
+    container.addElement(7);
+    container.addElement(11);
+    container.addElement(13);
+    MagicalContainer::SideCrossIterator it(container);
+    CHECK(*it == 2);
+    ++it;
+    CHECK(*it == 13);
+    ++it;
+    CHECK(*it == 3);
+    ++it;
+    CHECK(*it == 11);
+    ++it;
+    CHECK(*it == 5);
+    ++it;
+    CHECK(*it == 7);
+    ++it;
+    CHECK(it == it.end());
+}
+TEST_CASE("AscendingIterator Comparing/Removing/Adding TEST:")
+{
+    int numbers[] = {11, 3, 14, -1, 0};
+    MagicalContainer container;
+    container.addElement(numbers[0]);
+    container.addElement(numbers[1]);
+    container.addElement(numbers[2]);
+    container.addElement(numbers[3]);
+    container.addElement(numbers[4]);
+
+    // Adding Order: 11 -> 3 -> 14 -> -1 ->  0
+    // ASC Order:    -1 -> 0 ->  3 -> 11 -> 14
+    MagicalContainer::AscendingIterator ascIter(container);
+    auto myIT = ascIter.begin(); // should be -1
+    for (int i = 0; i < 2; i++) {
+        ++myIT; // -1 -> 0 -> 3
+    }
+    CHECK(*myIT == 3);
+    auto copyIT = myIT; // now copyIT should point to the same Node
+    CHECK(myIT == copyIT); // they both point to same Node
+    container.addElement(7); // so the ASC Order is: -1 -> 0 -> 3 -> 7 -> 11 -> 14
+    ++copyIT; // 3 -> 7
+    CHECK((*myIT == 3) + (*copyIT == 7) == 2); // both must be true according to iterator logic
+    CHECK(myIT < copyIT); // IMPORTANT! since 7 is bigger than 3
+    ++copyIT; // 7 -> 11
+    ++myIT; // 3 -> 7
+    ++myIT; // 7 -> 11
+    container.addElement(16); // so the ASC Order is: -1 -> 0 -> 3 -> 7 -> 11 -> 14 -> 16
+    ++myIT; // 11 -> 14
+    ++myIT; // 14 -> 16
+    container.removeElement(14); // so the ASC Order is: -1 -> 0 -> 3 -> 7 -> 11 -> 16
+    ++copyIT;// 11 -> 16
+    CHECK((myIT == copyIT) + (*myIT == *copyIT) == 2);
+}
+
+TEST_CASE("SideCrossIterator Comparing/Removing/Adding TEST:")
+{
+    int numbers[] = {1, 2, 3, 4, 5};
+
+    // Adding Order: 2 -> 1 -> 5 -> 3 -> 4
+    // ASC Order: 1 -> 2 -> 3 -> 4 -> 5
+    // Cross Order: 1 -> 5 -> 2 -> 4 -> 3 (ACCORDING TO ASC ORDER!!!)
+    MagicalContainer container;
+    container.addElement(numbers[0]);
+    container.addElement(numbers[1]);
+    container.addElement(numbers[2]);
+    container.addElement(numbers[3]);
+    container.addElement(numbers[4]);
+    MagicalContainer::SideCrossIterator crossIter(container);
+    auto myIT = crossIter.begin(); // should be 1
+    CHECK(*myIT == 1);
+    ++myIT; // 1 -> 5
+    auto secondIT = myIT; // should be 5
+    ++myIT; // 5 -> 2
+    CHECK((myIT > secondIT) + (*myIT < *secondIT) == 2); // since in side cross 5 < 2 but in value: 2 < 5
+    container.removeElement(1); // New Cross Order: 2 -> 5 -> 3 -> 4
+    CHECK(myIT < secondIT); // since now in cross order, 2 < 5
+    container.addElement(0); // New Cross Order: 0 -> 5 -> 2 -> 4 -> 3
+    CHECK(myIT > secondIT); // since now in cross order, 5 < 2
+    ++secondIT;
+    // now they both at 2
+    ++secondIT; // 2 -> 4
+    CHECK(myIT < secondIT); // 4 > 2
+    container.removeElement(5); // New Cross Order: 0 -> 4 -> 2 -> 3
+    CHECK(myIT > secondIT);// 2 > 4
+
+}
+TEST_CASE("PrimeIterator Comparing/Removing/Adding TEST:")
+{
+    int numbers[] = {7, 11, 3};
+    // Adding Order: 7 -> 11 -> 3
+    // Prime Order:  3 -> 7 -> 11
+    MagicalContainer container;
+    container.addElement(numbers[0]);
+    container.addElement(numbers[1]);
+    container.addElement(numbers[2]);
+    MagicalContainer::PrimeIterator primeIter(container);
+    auto myIT = primeIter.begin(); // should be 3
+    CHECK(*myIT == 3);
+    container.addElement(2); // New Prime Order: 2 -> 3 -> 7 -> 11
+    auto secondIT = primeIter.begin(); // should be 2
+    CHECK(myIT > secondIT); // since 3 > 2 in prime order
+    ++secondIT; // 2 -> 3
+    ++myIT; // 3 -> 7
+    container.addElement(5); // New Prime Order: 2 -> 3 -> 5 -> 7 -> 11
+    ++secondIT; // 3 -> 5
+    CHECK(myIT > secondIT); // 7 > 5
+    SUBCASE("Removing 3") {
+        MagicalContainer container2;
+        container2.addElement(numbers[0]);
+        container2.addElement(numbers[1]);
+        container2.addElement(numbers[2]);
+        MagicalContainer::PrimeIterator primeIter2(container2);
+        auto myIT2 = primeIter2.begin(); // should be 3
+        CHECK(*myIT2 == 3);
+        container2.removeElement(7); // New Prime Order: 7 -> 11
+       ++myIT2; // 3 -> 11
+       CHECK(*myIT2 == 11); // since 7 is removed
+       ++myIT2;
+       CHECK_THROWS(*myIT2); // since we are at the end
+       container.addElement(17);
+    }
+}

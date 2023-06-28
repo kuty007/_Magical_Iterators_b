@@ -14,82 +14,9 @@ DoublyLinkedList::~DoublyLinkedList() {
         delete current;
         current = next;
     }
-
 }
 
-void DoublyLinkedList::addElement2(int data) {
-    Node *new_node = new Node{data, isPrime(data), nullptr, nullptr, nullptr};
-    this->prime_size += new_node->is_prime ? 1 : 0;
-    Node *last_prime = this->head_prime;
-    // if list is empty
-    if (this->head == nullptr) {
-        this->head = new_node;
-        this->tail = new_node;
-        this->head_prime = new_node->is_prime ? new_node : nullptr;
-        this->tail_prime = new_node->is_prime ? new_node : nullptr;
-        this->size++;
-        return;
-    }
-    if (head_prime == nullptr) {
-        this->head_prime = new_node->is_prime ? new_node : nullptr;
-        this->tail_prime = new_node->is_prime ? new_node : nullptr;
-    }
-    // if list is not empty add in ascending order to the list and if the new node is prime add it to the prime list and update the pointers if it is already exist do nothing
-    Node *current = this->head;
-    while (current != nullptr) {
-        if (current->data == data) {
-            if (new_node->is_prime) {
-                this->prime_size--;
-            }
-            return;
-        }
-        if (current->is_prime && current->data < data) {
-            last_prime = current;
-        }
-        if (data < current->data) {
-            if (current == this->head) {
-                new_node->next = this->head;
-                this->head->prev = new_node;
-                this->head = new_node;
-                this->size++;
-                if (new_node->is_prime) {
-                    new_node->next_prime = this->head_prime;
-                    this->head_prime = new_node;
-                }
-                return;
-            }
-            new_node->next = current;
-            new_node->prev = current->prev;
-            current->prev->next = new_node;
-            current->prev = new_node;
-            this->size++;
-            if (new_node->is_prime && last_prime != nullptr) {
-                if (last_prime->data < new_node->data) {
-                    new_node->next_prime = last_prime->next_prime;
-                    last_prime->next_prime = new_node;
-                }
-                if (current == this->head_prime) {
-                    new_node->next_prime = this->head_prime;
-                    this->head_prime = new_node;
-                }
-            }
-            return;
-        }
-        current = current->next;
-    }
-    // if the new node is the biggest in the list
-    new_node->prev = this->tail;
-    this->tail->next = new_node;
-    this->tail = new_node;
-    this->size++;
-    if (new_node->is_prime) {
-        if (this->tail_prime != new_node) {
-            this->tail_prime->next_prime = new_node;
-        }
-        this->tail_prime = new_node;
 
-    }
-}
 
 void DoublyLinkedList::addElement(int data) {
     Node *new_node = new Node{data, isPrime(data), nullptr, nullptr, nullptr};
@@ -99,8 +26,15 @@ void DoublyLinkedList::addElement(int data) {
         this->tail = new_node;
         this->head_prime = new_node->is_prime ? new_node : nullptr;
         this->tail_prime = new_node->is_prime ? new_node : nullptr;
+        this->prime_size += new_node->is_prime ? 1 : 0;
         this->size++;
+        new_node->ascIndex = 0;
+        new_node->crossIndex = 0;
         return;
+    }
+    if (new_node->is_prime) {
+        prime_size++;
+        addPrimeElement(new_node);
     }
     Node *current = this->head;
     while (current != nullptr) {
@@ -115,52 +49,19 @@ void DoublyLinkedList::addElement(int data) {
                 this->size++;
                 return;
             }
-        new_node->next = current;
-        new_node->prev = current->prev;
-        current->prev->next = new_node;
-        current->prev = new_node;
-        this->size++;
-        return;
+            new_node->next = current;
+            new_node->prev = current->prev;
+            current->prev->next = new_node;
+            current->prev = new_node;
+            this->size++;
+            return;
         }
         current = current->next;
     }
-    new_node -> prev = this->tail;
+    new_node->prev = this->tail;
     this->tail->next = new_node;
     this->tail = new_node;
     this->size++;
-    // do same for prime list
-    if (new_node->is_prime) {
-        prime_size++;
-        if (this->head_prime == nullptr) {
-            this->head_prime = new_node;
-            this->tail_prime = new_node;
-            return;
-        }
-        Node *current_prime = this->head_prime;
-        while (current_prime != nullptr) {
-            if (current_prime->data == data) {
-                return;
-            }
-            if (data < current_prime->data) {
-                if (current_prime == this->head_prime) {
-                    new_node->next_prime = this->head_prime;
-                    this->head_prime->prev_prime = new_node;
-                    this->head_prime = new_node;
-                    return;
-                }
-                new_node->next_prime = current_prime;
-                new_node->prev_prime = current_prime->prev_prime;
-                current_prime->prev_prime->next_prime = new_node;
-                current_prime->prev_prime = new_node;
-                return;
-            }
-            current_prime = current_prime->next_prime;
-        }
-        new_node->prev_prime = this->tail_prime;
-        this->tail_prime->next_prime = new_node;
-        this->tail_prime = new_node;
-    }
-
 }
 
 
@@ -181,46 +82,45 @@ int DoublyLinkedList::getSize() {
     return this->size;
 }
 
-void DoublyLinkedList::removeElement(int element) {
+
+void DoublyLinkedList::removeElement(int data) {
+    // If the list is empty
     Node *current = this->head;
     while (current != nullptr) {
-        if (current->data == element) {
+        if (current->data == data) {
+            // Update previous and next pointers
             if (current == this->head) {
                 this->head = current->next;
-                if (this->head != nullptr) {
-                    this->head->prev = nullptr;
-                }
-                if (current->is_prime) {
-                    this->head_prime = current->next_prime;
-                    if (this->head_prime != nullptr) {
-                        this->head_prime->prev->next_prime = nullptr;
-                        this->head_prime->prev = nullptr;
-                    }
-                }
-                delete current;
-                this->size--;
-
-                return;
+            } else {
+                current->prev->next = current->next;
             }
+
             if (current == this->tail) {
                 this->tail = current->prev;
-                this->tail->next = nullptr;
-                if (current->is_prime) {
-                    this->tail->next_prime = nullptr;
-                }
-                delete current;
-                this->size--;
+            } else {
+                current->next->prev = current->prev;
+            }
 
-                return;
-            }
-            current->prev->next = current->next;
-            current->next->prev = current->prev;
+            // Update prime list pointers
             if (current->is_prime) {
-                current->prev->next_prime = current->next_prime;
-                current->next_prime->prev = current->prev;
+                if (current == this->head_prime) {
+                    this->head_prime = current->next_prime;
+                } else {
+                    current->prev_prime->next_prime = current->next_prime;
+                }
+
+                if (current == this->tail_prime) {
+                    this->tail_prime = current->prev_prime;
+                } else {
+                    current->next_prime->prev_prime = current->prev_prime;
+                }
+
+                prime_size--;
             }
+
             delete current;
             this->size--;
+
             return;
         }
         current = current->next;
@@ -230,46 +130,8 @@ void DoublyLinkedList::removeElement(int element) {
         }
     }
 }
-void DoublyLinkedList::removeElement2(int element) {
-    Node *current = this->head;
-    while (current != nullptr) {
-        if (current->data == element) {
-            if (current== this->head){
-                this->head = current->next;
-                if (this->head != nullptr) {
-                    this->head->prev = nullptr;
-                }
-                if (current->is_prime) {
-                    this->head_prime = current->next_prime;
-                    if (this->head_prime != nullptr) {
-                        this->head_prime->prev->next_prime = nullptr;
-                        this->head_prime->prev = nullptr;
-                    }
-                    this->prime_size--;
-                }
-                delete current;
-                this->size--;
-                return;
-            }
-            if (current == this->tail) {
-                this->tail = current->prev;
-                this->tail->next = nullptr;
-                if (current->is_prime) {
-                    this->tail->next_prime = nullptr;
-                    prime_size--;
-                }
-                delete current;
-                this->size--;
-                return;
-            }
-            current->prev->next = current->next;
-        }
-        }
 
-
-}
-
-
+/// Returns true if the number is prime, false otherwise
 bool DoublyLinkedList::isPrime(int num) {
     if (num <= 1) {
         return false;
@@ -282,6 +144,73 @@ bool DoublyLinkedList::isPrime(int num) {
     return true;
 }
 
-int DoublyLinkedList::getPrimeSize() {
+int DoublyLinkedList::getPrimeSize() const {
     return this->prime_size;
 }
+///
+/// \param element
+///set the element in the prime list
+void DoublyLinkedList::addPrimeElement(Node *element) {
+    if (this->head_prime == nullptr) {
+        this->head_prime = element;
+        this->tail_prime = element;
+        return;
+    }
+    Node *current = this->head_prime;
+    while (current != nullptr) {
+        if (current->data == element->data) {
+            return;
+        }
+        if (element->data < current->data) {
+            if (current == this->head_prime) {
+                element->next_prime = this->head_prime;
+                this->head_prime->prev_prime = element;
+                this->head_prime = element;
+                return;
+            }
+            element->next_prime = current;
+            element->prev_prime = current->prev_prime;
+            current->prev_prime->next_prime = element;
+            current->prev_prime = element;
+            return;
+        }
+        current = current->next_prime;
+    }
+    element->prev_prime = this->tail_prime;
+    this->tail_prime->next_prime = element;
+    this->tail_prime = element;
+}
+
+void DoublyLinkedList::updateAscIndex() {
+    Node *current = this->head;
+    int index = 0;
+    while (current != nullptr) {
+        current->ascIndex = index;
+        index++;
+        current = current->next;
+    }
+
+}
+
+void DoublyLinkedList::updateCrossIndex() {
+    Node *currentStart = this->head;
+    Node *currentEnd = this->tail;
+    Node *current = currentStart;
+    int index = 0;
+    while (index < this->size) {
+        current->crossIndex = index;
+        if (index % 2 == 0) {
+            current = currentEnd;
+            currentStart = currentStart->next;
+        } else {
+            current = currentStart;
+            currentEnd = currentEnd->prev;
+        }
+        index++;
+    }
+}
+
+
+
+
+
